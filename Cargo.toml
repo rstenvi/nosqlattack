@@ -1,0 +1,16 @@
+[package]
+name = "nosqlattack"
+version = "0.1.0"
+authors = ["Robin Stenvi"]
+
+[dependencies]
+getopts = "0.2"
+mongodb = "0.1.0"
+hyper = "0.6"
+rustc-serialize = "0.3"
+#xml-rs = "0.2"	// Not used yet
+rand = "*"
+time = "*"
+rust-ini = "*"
+log = "*"
+
