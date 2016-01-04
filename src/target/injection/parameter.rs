@@ -139,9 +139,10 @@ impl Parameters    {
         (ret, replaced)
     }
 
-    pub fn create_attack(&mut self, form: &web::Form) -> (Vec<web::Form>,Vec<String>)    {
+    pub fn create_attack(&mut self, form: &web::Form) -> (Vec<web::Form>,Vec<String>,Vec<String>)    {
         let mut ret = Vec::new();
         let mut replaced = Vec::new();
+        let mut strings = Vec::new();
         let num_params = form.number_of_params();
 
         // The inner vector holds the strings for each parameter,
@@ -158,6 +159,23 @@ impl Parameters    {
             let par_t = self.param_template.clone();
             let (str_vals, mut repl_vals) = self.create_strings(val_t, orig_value);
             let (str_pars, mut repl_pars) = self.create_strings(par_t, orig_param);
+            
+            let mut rr = str_vals.clone();
+            loop    {
+                let m = match rr.pop()   {
+                    Some(s) => s,
+                    None    => break,
+                };
+                strings.push(m);
+            }
+            let mut rr = str_pars.clone();
+            loop    {
+                let m = match rr.pop()   {
+                    Some(s) => s,
+                    None    => break,
+                };
+                strings.push(m);
+            }
 
             vec_str_vals.push(str_vals);
             vec_str_pars.push(str_pars);
@@ -176,6 +194,7 @@ impl Parameters    {
                 };
                 replaced.push(m);
             }
+
         }
 
 
@@ -208,7 +227,7 @@ impl Parameters    {
         else    {
             panic!("Not implemented");
         }
-        (ret, replaced)
+        (ret, replaced, strings)
     }
 }
 

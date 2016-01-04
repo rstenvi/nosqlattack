@@ -26,12 +26,12 @@ impl Template {
         &self.id
     }
 
-    pub fn inject(&mut self, form: &web::Form) -> Option<(Vec<web::Form>, Vec<String>)>    {
+    pub fn inject(&mut self, form: &web::Form) -> Option<(Vec<web::Form>, Vec<String>, Vec<String>, enums::InjectResult)>    {
         let supported_enc = self.injection.get_encoding();
         let current_enc = form.get_encoding();
         if supported_enc == ParameterEncoding::UNKNOWN || supported_enc == current_enc    {
-            let (forms, replaced) = self.injection.create_attack(form);
-            return Some( (forms, replaced) );
+            let (forms, replaced, non_match) = self.injection.create_attack(form);
+            return Some( (forms, replaced, non_match, self.expected.clone()) );
         }
         None
     }

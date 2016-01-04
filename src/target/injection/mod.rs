@@ -12,7 +12,7 @@ use super::web;
 use super::web::enums::ParameterEncoding;
 use time::PreciseTime;
 use std::io::Read;
-
+use super::super::helpers;
 
 /// Holds information about all the injection attacks.
 pub struct Inject    {
@@ -121,10 +121,11 @@ impl Inject  {
             };
 
             // If we don't get a valid form we jump to the next one
-            let (mut web_form, replaced) = match attack.inject(form)  {
+            let (mut web_form, replaced, non_match, expect_resp) = match attack.inject(form)  {
                 Some(s) => s,
                 None    => continue,
             };
+
 
             // We now have a list of web forms we can inject
             info!("Using attack with ID {}, {} tests", attack.get_id(), web_form.len());
@@ -134,7 +135,29 @@ impl Inject  {
                     None    => break,
                 };
                 let response = self.run_inject_test(&mut web);
-                let cmp_res = base.cmp(&response, replaced.clone());
+                let cmp_res: u32 = match expect_resp {
+                    enums::InjectResult::Error => {
+                        if base.code_ok() && base.code_equal(&response) == false { 5 } else { 0 }
+                    }
+                    enums::InjectResult::Delay => {
+                        if base.get_ms_difference(&response) > 9000 { 10 } else { 0 }
+                    }
+                    enums::InjectResult::Length => {
+                        if base.cmp_output_len(&response) > 10 { 1 } else { 0 }
+                    }
+                    enums::InjectResult::Header => {
+                        panic!("Unknown")
+                    }
+                    enums::InjectResult::Echo => {
+                        if helpers::search_vector(non_match.clone(), response.output.clone()) == false &&
+                            helpers::search_vector(replaced.clone(), response.output.clone()) == true
+                            { 10 }
+                        else { 0 }
+                    }
+                    enums::InjectResult::Unknown => {
+                        panic!("Unknown")
+                    }
+                };
                 if cmp_res > 0  {
                     println!("Found a possible attack ({}): {}", cmp_res, web.get_curl());
                 }
